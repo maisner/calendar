@@ -1,0 +1,28 @@
+{
+  "name": "maisner/calendar",
+  "description": "Cloud calendars integration for Nette Framework",
+  "keywords": [
+    "nette",
+    "calendar"
+  ],
+  "type": "library",
+  "license": [
+    "MIT"
+  ],
+  "homepage": "https://github.com/maisner/calendar",
+  "authors": [
+    {
+      "name": "Michal Šmeidler"
+    }
+  ],
+  "require": {
+    "php": ">= 7.1"
+  },
+  "require-dev": {},
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "Maisner\\Calendar\\": "src"
+    }
+  }
+}
