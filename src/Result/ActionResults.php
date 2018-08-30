@@ -37,6 +37,10 @@ class ActionResults {
 		return $this->results;
 	}
 
+	public function getOneResultByService(string $service) {
+		return $this->results[$service] ?? NULL;
+	}
+
 	public function isSuccess(): bool {
 		foreach ($this->results as $result) {
 			if (!$result->isSuccess()) {
