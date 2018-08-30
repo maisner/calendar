@@ -3,7 +3,7 @@
 namespace Maisner\Calendar\DI;
 
 use Maisner\Calendar\Calendar;
-use Maisner\Calendar\Wrapper\ICalendarWrapper;
+use Maisner\Calendar\Service\ICalendarService;
 use Nette\DI\CompilerExtension;
 use Nette\DI\ContainerBuilder;
 use Nette\DI\Statement;
@@ -15,31 +15,31 @@ class CalendarExtension extends CompilerExtension {
 		$builder->addDefinition($this->prefix('calendar'))
 			->setFactory(Calendar::class);
 
-		foreach ($this->config['wrappers'] as $index => $wrapper) {
-			if ($wrapper instanceof Statement) {
-				$this->registerWrapper($builder, $wrapper, (string)$index);
+		foreach ($this->config['calendarServices'] as $index => $service) {
+			if ($service instanceof Statement) {
+				$this->registerCalendarService($builder, $service, (string)$index);
 				continue;
 			}
 
-			if (\is_array($wrapper)) {
-				foreach ($wrapper as $name => $item) {
-					$this->registerWrapper($builder, $item, $name);
+			if (\is_array($service)) {
+				foreach ($service as $name => $item) {
+					$this->registerCalendarService($builder, $item, $name);
 				}
 			}
 		}
 	}
 
-	protected function registerWrapper(ContainerBuilder $builder, Statement $statement, string $name): void {
-		$builder->addDefinition($this->prefix('wrapper.' . $name))->setFactory($statement);
+	protected function registerCalendarService(ContainerBuilder $builder, Statement $statement, string $name): void {
+		$builder->addDefinition($this->prefix('calendarService.' . $name))->setFactory($statement);
 	}
 
 	public function beforeCompile(): void {
 		$builder = $this->getContainerBuilder();
 		$calendarDefinition = $builder->getDefinitionByType(Calendar::class);
 
-		/** @var ICalendarWrapper $wrapper */
-		foreach ($builder->findByType(ICalendarWrapper::class) as $wrapper) {
-			$calendarDefinition->addSetup('addWrapper', [$wrapper]);
+		/** @var ICalendarService $service */
+		foreach ($builder->findByType(ICalendarService::class) as $service) {
+			$calendarDefinition->addSetup('addService', [$service]);
 		}
 	}
 }

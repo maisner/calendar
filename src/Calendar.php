@@ -2,32 +2,102 @@
 
 namespace Maisner\Calendar;
 
-use Maisner\Calendar\Wrapper\ICalendarWrapper;
+use Maisner\Calendar\Exception\ServiceActionException;
+use Maisner\Calendar\Result\ActionResults;
+use Maisner\Calendar\Result\OneServiceActionResult;
+use Maisner\Calendar\Service\ICalendarService;
 
 class Calendar {
 
-	/** @var array|ICalendarWrapper[] */
-	private $wrappers = [];
+	/** @var array|ICalendarService[] */
+	private $services = [];
 
-	public function addWrapper(ICalendarWrapper $wrapper): void {
-		$this->wrappers[\get_class($wrapper)] = $wrapper;
+	public function addService(ICalendarService $service): void {
+		$this->services[$service->getServiceName()] = $service;
 	}
 
-	public function insertEvent(Event $event): void {
-		foreach ($this->wrappers as $wrapper) {
-			$wrapper->insertEvent($event);
+	/**
+	 * @param Event $event
+	 * @return ActionResults
+	 * @throws Exception\ActionIsNotAllowedException
+	 */
+	public function insertEvent(Event $event): ActionResults {
+		$actionResult = new ActionResults(Action::INSERT_EVENT);
+
+		foreach ($this->services as $service) {
+			try {
+				$eventId = $service->insertEvent($event);
+			} catch (ServiceActionException $e) {
+				$actionResult->addResult(
+					OneServiceActionResult::createFailedResult($service->getServiceName(), $e->getMessage())
+				);
+				continue;
+			}
+
+			$actionResult->addResult(OneServiceActionResult::createSuccessResult($service->getServiceName(), $eventId));
 		}
+
+		return $actionResult;
 	}
 
-	public function updateEvent(Event $event): void {
-		foreach ($this->wrappers as $wrapper) {
-			$wrapper->updateEvent($event);
+	/**
+	 * @param EventIdsCollection $eventIds
+	 * @param Event              $event
+	 * @return ActionResults
+	 * @throws Exception\ActionIsNotAllowedException
+	 */
+	public function updateEvent(EventIdsCollection $eventIds, Event $event): ActionResults {
+		$actionResult = new ActionResults(Action::UPDATE_EVENT);
+
+		foreach ($this->services as $service) {
+			$eventId = $eventIds->getEventId($service->getServiceName());
+
+			if ($eventId === NULL) {
+				continue;
+			}
+
+			try {
+				$service->updateEvent($eventId, $event);
+			} catch (ServiceActionException $e) {
+				$actionResult->addResult(
+					OneServiceActionResult::createFailedResult($service->getServiceName(), $e->getMessage(), $eventId)
+				);
+				continue;
+			}
+
+			$actionResult->addResult(OneServiceActionResult::createSuccessResult($service->getServiceName(), $eventId));
 		}
+
+		return $actionResult;
 	}
 
-	public function removeEvent(Event $event): void {
-		foreach ($this->wrappers as $wrapper) {
-			$wrapper->removeEvent($event);
+	/**
+	 * @param EventIdsCollection $eventIds
+	 * @return ActionResults
+	 * @throws Exception\ActionIsNotAllowedException
+	 */
+	public function removeEvent(EventIdsCollection $eventIds): ActionResults {
+		$actionResult = new ActionResults(Action::REMOVE_EVENT);
+
+		foreach ($this->services as $service) {
+			$eventId = $eventIds->getEventId($service->getServiceName());
+
+			if ($eventId === NULL) {
+				continue;
+			}
+
+			try {
+				$service->removeEvent($eventId);
+			} catch (ServiceActionException $e) {
+				$actionResult->addResult(
+					OneServiceActionResult::createFailedResult($service->getServiceName(), $e->getMessage(), $eventId)
+				);
+				continue;
+			}
+
+			$actionResult->addResult(OneServiceActionResult::createSuccessResult($service->getServiceName(), $eventId));
 		}
+
+		return $actionResult;
 	}
 }

@@ -17,6 +17,6 @@ Required:
 config.neon
 ```
 calendar:
-    wrappers:
-        - googleCalendar: Maisner\Calendar\Wrapper\GoogleCalendar(serviceAccountAuth.json, 'googleCalendarId')
+    calendarServices:
+        - googleCalendar: Maisner\Calendar\Service\GoogleCalendar(serviceAccountAuth.json, 'googleCalendarId')
 ```
