@@ -30,7 +30,7 @@ class GoogleCalendar implements ICalendarService {
 		return $this->googleCalendarId;
 	}
 
-	public function getServiceName(): string {
+	public static function getServiceName(): string {
 		return 'Google Calendar';
 	}
 

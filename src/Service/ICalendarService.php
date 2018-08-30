@@ -7,7 +7,7 @@ use Maisner\Calendar\Exception\ServiceActionException;
 
 interface ICalendarService {
 
-	public function getServiceName(): string;
+	public static function getServiceName(): string;
 
 	//	public function getEvent(string $id): Event;
 
